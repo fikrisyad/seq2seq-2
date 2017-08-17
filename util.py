@@ -1,5 +1,5 @@
 from collections import Counter
-
+from keras import backend as K
 
 def vocab(path, vocab_size, EOS=False):
     with open(path, mode="r") as f1:
@@ -47,3 +47,21 @@ def sentence2idx(path, vocab_size=False, word_idx=False, train=False):
 
     else:
         raise TypeError
+        
+'''
+functions for Keras Lambda Layer
+'''
+# get last layer of encoder
+def last_layer(x):
+    return x[:,-1,:]
+# return the output shape
+def last_layer_output(input_shape):
+    return (input_shape[0], input_shape[2])
+
+# get sum of vector/tensor
+def sum_tensor(x):
+    return K.sum(x, axis=1)
+
+# return the output shape
+def sum_tensor_output(input_shape):
+    return (input_shape[0], input_shape[2])
