@@ -1,4 +1,5 @@
 import json
+import util
 from keras.layers import Input, Dense, Lambda, concatenate, multiply, add, Activation, LSTM, Embedding, SpatialDropout1D, RepeatVector, TimeDistributed, Flatten
 from keras.models import Model
 from keras import backend as K
@@ -92,7 +93,7 @@ def seq2seq_attention(encoder_vocab_size, encoder_maxlen,
                             input_length=encoder_maxlen)(encoder_input)
     encoder_emb = SpatialDropout1D(0.2)(encoder_emb)  # 0.2 is dropping rate
     encoder = LSTM(hidden_size, return_sequences=True)(encoder_emb)  # save sequences for attention
-    encoder_last_layer = Lambda(lambda x: x[:,-1,:])(encoder)
+    encoder_last_layer = Lambda(util.last_layer, output_shape=util.last_layer_output)(encoder)
     encoder_out = RepeatVector(decoder_maxlen)(encoder_last_layer)
 
     decoder_input = Input(shape=(decoder_maxlen,), name='decoder_input')  
@@ -109,7 +110,7 @@ def seq2seq_attention(encoder_vocab_size, encoder_maxlen,
     attention = TimeDistributed(Dense(1))(attention)
     attention = Lambda(lambda x: activations.softmax(x, axis=1))(attention)
     attention = multiply([encoder, attention])
-    attention = Lambda(lambda x: K.sum(x, axis=1))(attention)
+    attention = Lambda(util.sum_tensor, output_shape=util.sum_tensor_output)(attention)
 
     main_output = concatenate([enc_dec_hidden, attention], axis=-1)
     main_output = Dense(hidden_size, activation='tanh')(main_output)
